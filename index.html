@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -6,24 +6,36 @@
     <style>
         body { background-color: #1a1a1a; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
         #balance { font-size: 48px; font-weight: bold; color: #f1c40f; margin-bottom: 20px; }
-        #coin { width: 200px; height: 200px; cursor: pointer; transition: transform 0.1s; user-select: none; }
+        #coin { width: 200px; height: 200px; cursor: pointer; transition: transform 0.1s; user-select: none; margin-bottom: 30px; }
         #coin:active { transform: scale(0.95); }
+        button { background: #2ecc71; border: none; color: white; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="balance">💰 0</div>
     <img id="coin" src="https://cdn-icons-png.flaticon.com/512/5935/5935833.png">
+
+    <button onclick="saveGame()">Сохранить и выйти</button>
+
     <script>
         let tg = window.Telegram.WebApp;
         let score = 0;
         tg.expand();
+
         const coin = document.getElementById('coin');
         const balanceDisplay = document.getElementById('balance');
+
         coin.addEventListener('click', () => {
             score++;
             balanceDisplay.innerText = "💰 " + score;
             if (tg.HapticFeedback) { tg.HapticFeedback.impactOccurred('medium'); }
         });
+
+        // Функция отправки данных в бот
+        function saveGame() {
+            tg.sendData(score.toString()); // Отправляем число кликов как текст
+            tg.close(); // Закрываем мини-апп
+        }
     </script>
 </body>
 </html>
