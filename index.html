@@ -1,19 +1,33 @@
+Это отличная идея! Это называется системой прогрессии. Она удерживает игроков, потому что им хочется увидеть, что будет дальше.
+
+Чтобы это реализовать, тебе нужно обновить только файл index.html на GitHub. Бот в PyCharm трогать не нужно — он просто принимает финальное число.
+
+Как это работает:
+Мы создадим список (массив) картинок и уровней. Скрипт будет проверять: «Так, у него уже 1000 монет? Пора менять картинку!».
+
+Обнови свой index.html этим кодом:
+Вставь это вместо старого кода. Я добавил туда логику уровней:
+
+HTML
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #1a1a1a; color: white; text-align: center; font-family: sans-serif; padding-top: 50px; }
-        #coin { width: 200px; filter: drop-shadow(0 0 10px gold); cursor: pointer; }
-        #balance { font-size: 40px; margin: 20px; color: gold; }
-        button { background: #2ecc71; color: white; border: none; padding: 15px 25px; border-radius: 10px; font-size: 18px; }
+        body { background: radial-gradient(circle, #2c3e50, #000000); color: white; text-align: center; font-family: 'Arial', sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #status { font-size: 18px; color: #bdc3c7; margin-bottom: 10px; }
+        #balance { font-size: 45px; font-weight: bold; color: #f1c40f; text-shadow: 0 0 15px rgba(241, 196, 15, 0.5); margin-bottom: 20px; }
+        #coin { width: 220px; height: 220px; cursor: pointer; transition: transform 0.1s; user-select: none; }
+        #coin:active { transform: scale(0.9); }
+        button { margin-top: 40px; background: #27ae60; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
+    <div id="status">Уровень: Новичок 👶</div>
     <div id="balance">💰 0</div>
-    <img id="coin" src="https://cdn-icons-png.flaticon.com/512/5935/5935833.png" onclick="tap()">
-    <br>
+    <img id="coin" src="https://cdn-icons-png.flaticon.com/512/5935/5935833.png">
+    
     <button onclick="saveAndExit()">Сохранить и выйти</button>
 
     <script>
@@ -21,10 +35,37 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        function tap() {
-            score++;
-            document.getElementById('balance').innerText = "💰 " + score;
+        const coinImg = document.getElementById('coin');
+        const balanceTxt = document.getElementById('balance');
+        const statusTxt = document.getElementById('status');
+
+        // Твои уровни и картинки
+        const levels = [
+            { min: 0, name: "Новичок 👶", img: "https://cdn-icons-png.flaticon.com/512/5935/5935833.png" },
+            { min: 10, name: "Опытный 💪", img: "https://cdn-icons-png.flaticon.com/512/2311/2311910.png" },
+            { min: 50, name: "Магнат 🎩", img: "https://cdn-icons-png.flaticon.com/512/2534/2534164.png" },
+            { min: 100, name: "Крипто-Король 👑", img: "https://cdn-icons-png.flaticon.com/512/3233/3233816.png" }
+        ];
+
+        function updateLevel() {
+            // Проверяем, какую картинку поставить
+            for (let i = levels.length - 1; i >= 0; i--) {
+                if (score >= levels[i].min) {
+                    if (coinImg.src !== levels[i].img) {
+                        coinImg.src = levels[i].img;
+                        statusTxt.innerText = "Уровень: " + levels[i].name;
+                    }
+                    break;
+                }
+            }
         }
+
+        coinImg.addEventListener('click', () => {
+            score++;
+            balanceTxt.innerText = "💰 " + score;
+            updateLevel();
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
 
         function saveAndExit() {
             tg.sendData(score.toString());
