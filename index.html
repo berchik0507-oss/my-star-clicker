@@ -1,115 +1,74 @@
-КЛИКАЙ!👆
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { background: radial-gradient(circle, #1e272e, #000000); color: white; text-align: center; font-family: sans-serif; height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; user-select: none; transition: background 0.1s; }
-        #status { font-size: 18px; color: #00d8ff; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
-        #balance { font-size: 50px; font-weight: 900; color: #f1c40f; text-shadow: 0 0 20px rgba(241, 196, 15, 0.6); margin-bottom: 10px; cursor: pointer; }
-        #progress-container { width: 80%; background: #333; height: 10px; border-radius: 5px; margin-bottom: 30px; overflow: hidden; }
-        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #f1c40f, #f39c12); transition: width 0.3s; }
-        .coin-container { position: relative; display: inline-block; }
-        #coin { width: 240px; height: 240px; cursor: pointer; transition: transform 0.05s; -webkit-tap-highlight-color: transparent; }
-        #coin:active { transform: scale(0.92); }
-        .plus-one { position: absolute; color: #f1c40f; font-size: 26px; font-weight: bold; pointer-events: none; animation: floatUp 0.7s ease-out forwards; z-index: 10; }
-        .critical { color: #ff3e3e; font-size: 38px; text-shadow: 0 0 10px #fff; animation: critUp 1s ease-out forwards !important; }
-        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
-        @keyframes critUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-50px) scale(1.4); } 100% { transform: translateY(-150px) scale(1); opacity: 0; } }
-        button { margin-top: 40px; background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; padding: 15px 40px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .flash { background: radial-gradient(circle, #f1c40f, #000000) !important; }
-        #profile-card { position: fixed; bottom: -100%; left: 0; width: 100%; background: #1c252b; border-top: 3px solid #00d8ff; border-radius: 25px 25px 0 0; padding: 30px 20px; transition: bottom 0.4s ease; z-index: 100; box-sizing: border-box; }
-        #profile-card.active { bottom: 0; }
-        .profile-avatar { width: 80px; height: 80px; background: #2c3e50; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; border: 2px solid #f1c40f; }
-        .profile-info { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
-        .close-btn { background: #e74c3c; padding: 10px 20px; border-radius: 10px; border: none; color: white; font-weight: bold; margin-top: 10px; width: 100%; }
-    </style>
-</head>
-<body>
-    <div id="status" onclick="toggleProfile()">Статус: Бедняк 👕</div>
-    <div id="balance" onclick="toggleProfile()">💰 0</div>
-    <div id="progress-container"><div id="progress-bar"></div></div>
-    <div class="coin-container" id="container">
-        <img id="coin" src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png">
-    </div>
-    <button onclick="saveAndExit()">Сохранить и выйти</button>
-    <div id="profile-card">
-        <div class="profile-avatar">👤</div>
-        <div class="profile-info">
-            <h2 id="p-name">Игрок</h2>
-            <p id="p-rank" style="color: #00d8ff; font-weight: bold;">Ранг: Бедняк</p>
-            <p id="p-clicks" style="color: #bdc3c7;">Всего кликов: 0</p>
-            <p style="color: #7f8c8d; font-size: 12px;">В игре с: Май 2026</p>
-        </div>
-        <button class="close-btn" onclick="toggleProfile()">Закрыть</button>
-    </div>
-    <script>
-        let score = 0;
-        let totalClicks = 0;
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        const coinImg = document.getElementById('coin');
-        const balanceTxt = document.getElementById('balance');
-        const statusTxt = document.getElementById('status');
-        const progressBar = document.getElementById('progress-bar');
-        const container = document.getElementById('container');
-        const profileCard = document.getElementById('profile-card');
-        const levels = [
-            { min: 0, max: 100, name: "Бедыч 👕", img: "https://cdn-icons-png.flaticon.com/512/2489/2489756.png" },
-            { min: 100, max: 500, name: "Работяга 🛠️", img: "https://cdn-icons-png.flaticon.com/512/3135/3135688.png" },
-            { min: 500, max: 1500, name: "Бизнесмен 💼", img: "https://cdn-icons-png.flaticon.com/512/2685/2685043.png" },
-            { min: 1500, max: 5000, name: "Меллстройность 💎", img: "https://cdn-icons-png.flaticon.com/512/2169/2169864.png" },
-            { min: 5000, max: 10000, name: "Олигарх 🏛️", img: "https://cdn-icons-png.flaticon.com/512/2438/2438094.png" }
-        ];
-        function toggleProfile() {
-            profileCard.classList.toggle('active');
-            document.getElementById('p-clicks').innerText = "Всего кликов: " + totalClicks;
-            document.getElementById('p-rank').innerText = "Ранг: " + statusTxt.innerText.replace("Статус: ", "");
-            document.getElementById('p-name').innerText = tg.initDataUnsafe.user?.first_name || "Игрок";
-        }
-        function updateUI() {
-            balanceTxt.innerText = "💰 " + score;
-            for (let i = levels.length - 1; i >= 0; i--) {
-                if (score >= levels[i].min) {
-                    if (!coinImg.src.includes(levels[i].img)) {
-                        coinImg.src = levels[i].img;
-                        statusTxt.innerText = "Статус: " + levels[i].name;
-                    }
-                    let percent = ((score - levels[i].min) / (levels[i].max - levels[i].min)) * 100;
-                    progressBar.style.width = Math.min(percent, 100) + "%";
-                    break;
-                }
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    
+    const urlParams = new URLSearchParams(window.location.search);
+   
+    let score = parseInt(urlParams.get('score')) || 0;
+    let totalClicks = 0; 
+    let isTurbo = false;
+
+   
+    const levels = [
+        { min: 0, max: 100, name: "Бедняк 👕", img: "https://cdn-icons-png.flaticon.com/512/2489/2489756.png" },
+        { min: 100, max: 500, name: "Работяга 🛠️", img: "https://cdn-icons-png.flaticon.com/512/3135/3135688.png" },
+        { min: 500, max: 1500, name: "Бизнесмен 💼", img: "https://cdn-icons-png.flaticon.com/512/2685/2685043.png" },
+        { min: 1500, max: 5000, name: "Миллионер 💎", img: "https://cdn-icons-png.flaticon.com/512/2169/2169864.png" },
+        { min: 5000, max: 10000000, name: "Олигарх 🏛️", img: "https://cdn-icons-png.flaticon.com/512/2438/2438094.png" }
+    ];
+
+   
+    function updateUI() {
+        document.getElementById('balance').innerText = "💰 " + score;
+        for (let i = levels.length - 1; i >= 0; i--) {
+            if (score >= levels[i].min) {
+                document.getElementById('coin').src = levels[i].img;
+                document.getElementById('status').innerText = "Статус: " + levels[i].name;
+                let percent = ((score - levels[i].min) / (levels[i].max - levels[i].min)) * 100;
+                document.getElementById('progress-bar').style.width = Math.min(percent, 100) + "%";
+                break;
             }
         }
-        coinImg.addEventListener('click', (e) => {
-            totalClicks++;
-            let isCrit = Math.random() < 0.05;
-            let amount = isCrit ? 20 : 1;
-            score += amount;
-            updateUI();
-            const plus = document.createElement('div');
-            plus.classList.add('plus-one');
-            if (isCrit) {
-                plus.classList.add('critical');
-                plus.innerText = 'LUCKY +20!';
-                document.body.classList.add('flash');
-                setTimeout(() => document.body.classList.remove('flash'), 100);
-            } else {
-                plus.innerText = '+1';
-            }
-            const rect = container.getBoundingClientRect();
-            plus.style.left = (e.clientX - rect.left - 50) + 'px';
-            plus.style.top = (e.clientY - rect.top - 20) + 'px';
-            container.appendChild(plus);
-            setTimeout(() => plus.remove(), 900);
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-        });
-        function saveAndExit() {
-            tg.sendData(score.toString());
-            tg.close();
-        }
-    </script>
-</body>
-</html>
+    }
+
+  
+    updateUI();
+
+    
+    document.getElementById('coin').addEventListener('click', (e) => {
+        totalClicks++;
+        let mult = isTurbo ? 5 : 1;
+        let isCrit = Math.random() < 0.05;
+        let amount = (isCrit ? 20 : 1) * mult;
+        score += amount;
+        
+        updateUI(); 
+
+        
+        const plus = document.createElement('div');
+        plus.className = 'plus-one' + (isCrit ? ' critical' : '');
+        plus.innerText = isCrit ? `LUCKY +${amount}!` : `+${amount}`;
+        plus.style.left = (e.clientX - 50) + 'px';
+        plus.style.top = (e.clientY - 20) + 'px';
+        document.body.appendChild(plus);
+        setTimeout(() => plus.remove(), 800);
+        
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    });
+
+    
+    function saveAndExit() {
+       
+        let currentRank = document.getElementById('status').innerText.replace("Статус: ", "");
+        
+        
+        let dataToSend = score + "|" + currentRank;
+        
+        tg.sendData(dataToSend); // 
+        tg.close(); // 
+    }
+
+    function toggleProfile() { document.getElementById('profile-card').classList.toggle('active'); }
+    function toggleInfo() { document.getElementById('info-card').classList.toggle('active'); }
+</script>
