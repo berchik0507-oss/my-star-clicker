@@ -18,7 +18,7 @@
     </style>
 </head>
 <body>
-    <div id="status">Статус: Бедыч 👕</div>
+    <div id="status">Загрузка...</div>
     <div id="balance">💰 0</div>
     <div id="progress-container"><div id="progress-bar"></div></div>
     <img id="coin" src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png">
@@ -29,6 +29,7 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        // ЧИТАЕМ ДАННЫЕ ИЗ ССЫЛКИ
         const urlParams = new URLSearchParams(window.location.search);
         let score = parseInt(urlParams.get('score')) || 0;
 
@@ -42,17 +43,20 @@
 
         function updateUI() {
             document.getElementById('balance').innerText = "💰 " + score;
+            let currentLevel = levels[0];
             for (let i = levels.length - 1; i >= 0; i--) {
                 if (score >= levels[i].min) {
-                    document.getElementById('coin').src = levels[i].img;
-                    document.getElementById('status').innerText = "Статус: " + levels[i].name;
-                    let percent = ((score - levels[i].min) / (levels[i].max - levels[i].min)) * 100;
-                    document.getElementById('progress-bar').style.width = Math.min(percent, 100) + "%";
+                    currentLevel = levels[i];
                     break;
                 }
             }
+            document.getElementById('coin').src = currentLevel.img;
+            document.getElementById('status').innerText = "Статус: " + currentLevel.name;
+            let percent = ((score - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100;
+            document.getElementById('progress-bar').style.width = Math.min(percent, 100) + "%";
         }
 
+        // Инициализация при запуске
         updateUI();
 
         document.getElementById('coin').addEventListener('click', (e) => {
@@ -69,8 +73,9 @@
         });
 
         function saveAndExit() {
-            let currentRank = document.getElementById('status').innerText.replace("Статус: ", "");
-            tg.sendData(score + "|" + currentRank);
+            let statusText = document.getElementById('status').innerText.replace("Статус: ", "");
+            // Отправляем данные боту: "150|Работяга 🛠️"
+            tg.sendData(score + "|" + statusText);
             tg.close();
         }
     </script>
