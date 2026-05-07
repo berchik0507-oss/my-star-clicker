@@ -14,6 +14,7 @@
         #coin:active { transform: scale(0.92); }
         button { background: #27ae60; color: white; border: none; padding: 15px 25px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .plus-one { position: absolute; color: #f1c40f; font-size: 26px; font-weight: bold; pointer-events: none; animation: floatUp 0.7s ease-out forwards; }
+        .critical { color: #ff4757; text-shadow: 0 0 10px #ff4757; font-size: 32px; }
         @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
     </style>
 </head>
@@ -21,7 +22,7 @@
     <div id="status">Загрузка...</div>
     <div id="balance">💰 0</div>
     <div id="progress-container"><div id="progress-bar"></div></div>
-    <img id="coin" src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png">
+    <img id="coin" src="">
     <br>
     <button onclick="saveAndExit()">Сохранить и Выйти</button>
 
@@ -29,7 +30,6 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ЧИТАЕМ ДАННЫЕ ИЗ ССЫЛКИ
         const urlParams = new URLSearchParams(window.location.search);
         let score = parseInt(urlParams.get('score')) || 0;
 
@@ -52,30 +52,34 @@
             }
             document.getElementById('coin').src = currentLevel.img;
             document.getElementById('status').innerText = "Статус: " + currentLevel.name;
-            let percent = ((score - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100;
+            let range = currentLevel.max - currentLevel.min;
+            let percent = ((score - currentLevel.min) / range) * 100;
             document.getElementById('progress-bar').style.width = Math.min(percent, 100) + "%";
         }
 
-        // Инициализация при запуске
         updateUI();
 
         document.getElementById('coin').addEventListener('click', (e) => {
-            score++;
+            let isCrit = Math.random() < 0.05; // 5% шанс на 20 монет
+            let amount = isCrit ? 20 : 1;
+            score += amount;
+            
             updateUI();
+
             const plus = document.createElement('div');
-            plus.className = 'plus-one';
-            plus.innerText = '+1';
+            plus.className = 'plus-one' + (isCrit ? ' critical' : '');
+            plus.innerText = isCrit ? 'LUCKY +20!' : '+1';
             plus.style.left = e.pageX + 'px';
             plus.style.top = e.pageY + 'px';
             document.body.appendChild(plus);
             setTimeout(() => plus.remove(), 700);
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred(isCrit ? 'heavy' : 'light');
         });
 
         function saveAndExit() {
-            let statusText = document.getElementById('status').innerText.replace("Статус: ", "");
-            // Отправляем данные боту: "150|Работяга 🛠️"
-            tg.sendData(score + "|" + statusText);
+            let currentRank = document.getElementById('status').innerText.replace("Статус: ", "");
+            tg.sendData(score + "|" + currentRank);
             tg.close();
         }
     </script>
